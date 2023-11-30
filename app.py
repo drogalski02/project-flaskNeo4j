@@ -174,6 +174,19 @@ def get_subordinates(employee_id):
         result = session.execute_read(get_sub, employee_id)
         return jsonify(result)
 
+# Task 8 unfinished
+def get_emp_dep(tx, employee_id):
+    query = "MATCH (e:Employee)-[r]->(d:Department)<-[q:MANAGES]-(m:Employee) " \
+            "WHERE ID(e)=$employee_id " \
+            "RETURN d as Department, m as Manager, COUNT(e) as Employees_number"
+    results = tx.run(query, employee_id=employee_id).data()
+    return results
+@app.route('/departments/<int:employee_id>', methods=['GET'])
+def get_employee_department(employee_id):
+    with driver.session() as session:
+        result = session.execute_read(get_emp_dep, employee_id)
+        return jsonify(result)
+
 # Task 9 finished
 def get_dep(tx):
     query = "MATCH (d:Department) RETURN d"
