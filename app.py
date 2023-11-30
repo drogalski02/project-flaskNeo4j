@@ -64,9 +64,9 @@ def get_employees_props(prop):
             return jsonify(employee)
 
 # Task 4 finished
-def add_emp(tx, firstname, lastname, position, salary):
-    query = "CREATE (m:Employee {firstname: $firstname, lastname: $lastname, position: $position, salary: $salary})"
-    tx.run(query, firstname=firstname, lastname=lastname, position=position, salary=salary)
+def add_emp(tx, firstname, lastname, position, salary, department):
+    query = "CREATE (m:Employee {firstname: $firstname, lastname: $lastname, position: $position, salary: $salary})-[:WORKS_IN]->(d:Department {name:$department})"
+    tx.run(query, firstname=firstname, lastname=lastname, position=position, salary=salary, department=department)
 
 def is_unique(firstname, lastname):
     query = "MATCH (m:Employee {firstname: $firstname, lastname: $lastname}) RETURN COUNT(m) AS count"
@@ -75,15 +75,16 @@ def is_unique(firstname, lastname):
 
 @app.route('/employees', methods=['POST'])
 def add_employee():
-    required_parameters = ['firstname', 'lastname', 'position', 'salary']
+    required_parameters = ['firstname', 'lastname', 'position', 'salary', 'department']
     if all(parameter in request.json for parameter in required_parameters):
         firstname = request.json['firstname']
         lastname = request.json['lastname']
         position = request.json['position']
         salary = request.json['salary']
+        department = request.json['department']
         if is_unique(firstname, lastname):
             with driver.session() as session:
-                session.execute_write(add_emp, firstname, lastname, position, salary)
+                session.execute_write(add_emp, firstname, lastname, position, salary, department)
 
             return jsonify({"status": "Success. Employee added."})
         else:
