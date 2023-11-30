@@ -65,7 +65,8 @@ def get_employees_props(prop):
 
 # Task 4 finished
 def add_emp(tx, firstname, lastname, position, salary, department):
-    query = "CREATE (m:Employee {firstname: $firstname, lastname: $lastname, position: $position, salary: $salary})-[:WORKS_IN]->(d:Department {name:$department})"
+    query = "CREATE (m:Employee {firstname: $firstname, lastname: $lastname, position: $position, salary: $salary})" \
+            "-[:WORKS_IN]->(d:Department {name:$department})"
     tx.run(query, firstname=firstname, lastname=lastname, position=position, salary=salary, department=department)
 
 def is_unique(firstname, lastname):
@@ -93,15 +94,19 @@ def add_employee():
         return jsonify({"status": "Failure. Insufficient data."}), 500
 
 # Task 5 finished
-def put_emp(tx, employee_id, firstname, lastname, position, salary):
+def put_emp(tx, employee_id, firstname, lastname, position, salary, department):
     query = "MATCH (e:Employee) WHERE ID(e)=$employee_id RETURN e"
     result = tx.run(query, employee_id=employee_id).data()
     if not result:
         return None
     else:
-        query = "MATCH (e:Employee) WHERE ID(e)=$employee_id " \
-                "SET e.firstname=$firstname, e.lastname=$lastname, e.position=$position, e.salary=$salary"
-        tx.run(query, employee_id=employee_id, firstname=firstname, lastname=lastname, position=position, salary=salary)
+        query = "MATCH (e:Employee)-[r]->(d:Department) " \
+                "WHERE ID(e)=36 " \
+                "SET e.firstname=$firstname, e.lastname=$lastname, e.position=$position, e.salary=$salary " \
+                "DELETE r " \
+                "CREATE (e)-[:WORKS_IN]->(w:Department {name: $department})"
+        tx.run(query, employee_id=employee_id, firstname=firstname, lastname=lastname, position=position, salary=salary,
+               department=department)
         return {'firstname': firstname, 'lastname': lastname, 'position': position, 'salary': salary}
 
 
@@ -111,8 +116,9 @@ def put_employee(employee_id):
     lastname = request.json['lastname']
     position = request.json['position']
     salary = request.json['salary']
+    department = request.json['department']
     with driver.session() as session:
-        result = session.execute_write(put_emp, employee_id, firstname, lastname, position, salary)
+        result = session.execute_write(put_emp, employee_id, firstname, lastname, position, salary, department)
     if not result:
         return jsonify({'message': 'Employee not found'}), 404
     else:
