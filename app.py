@@ -130,21 +130,10 @@ def check_position(tx, employee_id):
     results = tx.run(check_position_query, employee_id=employee_id).data()
     if results:
         return results
-
-def find_new_menager(tx, employee_id):
-    query = "MATCH (e:Employee)-[:WORKS_IN]->(d:Department)<-[:MANAGES]-(m:Employee) " \
-            "WHERE ID(m) = $employee_id RETURN ID(e) as Id LIMIT 1"
-    results = tx.run(query, employee_id=employee_id).data()
-    if results:
-        return results
-
-def assign_new_manager(tx, new_id, department_id):
-    query = "MATCH (e:Employee)-[r:WORKS_IN]->(d:Department) " \
-            "WHERE ID(e) = $new_id AND ID(d) = $department_id " \
-            "DELETE r " \
-            "CREATE (e)-[:MANAGES]->(d)"
-    result = tx.run(query, new_id=new_id, department_id=department_id).data()
-    return result
+def del_dep(tx, department_id):
+    query = "MATCH (d:Department) WHERE ID(d)=$department_id DETACH DELETE d"
+    tx.run(query, department_id=department_id)
+    return {'id': department_id}
 def del_emp(tx, employee_id):
     query = "MATCH (e:Employee) WHERE ID(e)=$employee_id DETACH DELETE e"
     tx.run(query, employee_id=employee_id)
@@ -155,14 +144,10 @@ def delete_employee(employee_id):
         check_position_result = session.execute_read(check_position, employee_id)
         if check_position_result:
             department_id = check_position_result[0]['Id']
-            find_new_manager_result = session.execute_read(find_new_menager, employee_id)
-            if find_new_manager_result:
-                new_id = find_new_manager_result[0]["Id"]
-                assign_new_manager_result = session.execute_write(assign_new_manager, new_id, department_id)
-                if assign_new_manager_result:
-                    delete_manager = session.execute_write(del_emp, employee_id)
-                    if delete_manager:
-                        return jsonify({'status': 'Success. Manager deleted. New manager assigned.'})
+            delete_employee_node = session.execute_write(del_emp, employee_id)
+            delete_department_node = session.execute_write(del_dep, department_id)
+            if delete_employee_node and delete_department_node:
+                return jsonify({'status': 'Success. Department and manager deleted.'})
 
         else:
             delete_employee_node = session.execute_write(del_emp, employee_id)
