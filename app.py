@@ -23,41 +23,40 @@ def get_emp(tx):
 def get_employees():
     with driver.session() as session:
         results = session.execute_read(get_emp)
-        response = {'result': results}
-        return jsonify(response)
+        return jsonify({'result': results})
 
 # Task 3 extended finished
-def get_emp_prop(tx, prop):
-    prop_tab = prop.split("=")
-    if prop_tab[0] == "firstname":
-        query = "MATCH (m:Employee) WHERE m.firstname CONTAINS $prop2 RETURN m"
-        results = tx.run(query, prop2=prop_tab[1]).data()
+def get_emp_arg(tx, arg):
+    arg_tab = arg.split("=")
+    if arg_tab[0] == "firstname":
+        query = "MATCH (m:Employee) WHERE m.firstname CONTAINS $arg2 RETURN m"
+        results = tx.run(query, arg2=arg_tab[1]).data()
         return [{"employee": result['m']} for result in results]
-    elif prop_tab[0] == "lastname":
-        query = "MATCH (m:Employee) WHERE m.lastname CONTAINS $prop2 RETURN m"
-        results = tx.run(query, prop2=prop_tab[1]).data()
+    elif arg_tab[0] == "lastname":
+        query = "MATCH (m:Employee) WHERE m.lastname CONTAINS $arg2 RETURN m"
+        results = tx.run(query, arg2=arg_tab[1]).data()
         return [{"employee": result['m']} for result in results]
-    elif prop_tab[0] == "position":
-        query = "MATCH (m:Employee) WHERE m.position CONTAINS $prop2 RETURN m"
-        results = tx.run(query, prop2=prop_tab[1]).data()
+    elif arg_tab[0] == "position":
+        query = "MATCH (m:Employee) WHERE m.position CONTAINS $arg2 RETURN m"
+        results = tx.run(query, arg2=arg_tab[1]).data()
         return [{"employee": result['m']} for result in results]
-    elif prop_tab[0] == "salary":
-        query = "MATCH (m:Employee) WHERE m.salary = $prop2 RETURN m"
-        results = tx.run(query, prop2=int(prop_tab[1])).data()
+    elif arg_tab[0] == "salary":
+        query = "MATCH (m:Employee) WHERE m.salary = $arg2 RETURN m"
+        results = tx.run(query, arg2=int(arg_tab[1])).data()
         return [{"employee": result['m']} for result in results]
-    elif prop_tab[0] == "orderbyAsc":
-        query = "MATCH (m:Employee) RETURN m ORDER BY m[$prop2]"
-        results = tx.run(query, prop2=prop_tab[1]).data()
+    elif arg_tab[0] == "orderbyAsc":
+        query = "MATCH (m:Employee) RETURN m ORDER BY m[$arg2]"
+        results = tx.run(query, arg2=arg_tab[1]).data()
         return [{"employee": result['m']} for result in results]
-    elif prop_tab[0] == "orderbyDesc":
-        query = "MATCH (m:Employee) RETURN m ORDER BY m[$prop2] DESC"
-        results = tx.run(query, prop2=prop_tab[1]).data()
+    elif arg_tab[0] == "orderbyDesc":
+        query = "MATCH (m:Employee) RETURN m ORDER BY m[$arg2] DESC"
+        results = tx.run(query, arg2=arg_tab[1]).data()
         return [{"employee": result['m']} for result in results]
 
-@app.route('/employees/<string:prop>', methods=['GET'])
-def get_employees_props(prop):
+@app.route('/employees/<string:arg>', methods=['GET'])
+def get_employees_props(arg):
     with driver.session() as session:
-        employee = session.execute_read(get_emp_prop, prop)
+        employee = session.execute_read(get_emp_arg, arg)
         if not employee:
             return jsonify({"message": 'Employee not found'}), 404
         else:
@@ -124,7 +123,7 @@ def put_employee(employee_id):
     else:
         return jsonify({'status': 'Success. Employee updated.'}, result)
 
-# Task 6 unfinished
+# Task 6 finished
 def check_position(tx, employee_id):
     check_position_query = "MATCH (e:Employee)-[:MANAGES]->(d:Department) WHERE ID(e)=$employee_id RETURN ID(d) as Id"
     results = tx.run(check_position_query, employee_id=employee_id).data()
@@ -166,7 +165,7 @@ def get_subordinates(employee_id):
         result = session.execute_read(get_sub, employee_id)
         return jsonify(result)
 
-# Task 8 unfinished
+# Task 8 finished
 def get_emp_dep(tx, employee_id):
     query = "MATCH (e:Employee)-[r]->(d:Department)<-[q:MANAGES]-(m:Employee) " \
             "WHERE ID(e)=$employee_id " \
@@ -176,8 +175,11 @@ def get_emp_dep(tx, employee_id):
 @app.route('/departments/<int:employee_id>', methods=['GET'])
 def get_employee_department(employee_id):
     with driver.session() as session:
-        result = session.execute_read(get_emp_dep, employee_id)
-        return jsonify(result)
+        results = session.execute_read(get_emp_dep, employee_id)
+        if results:
+            return jsonify(results)
+        else:
+            return jsonify({'status': 'Failure. Employee not found.'}), 404
 
 # Task 9 finished
 def get_dep(tx):
@@ -189,9 +191,10 @@ def get_dep(tx):
 def get_departments():
     with driver.session() as session:
         results = session.execute_read(get_dep)
-        response = {'result': results}
-        return jsonify(response)
-
+        if results:
+            return jsonify({'result': results})
+        else:
+            return jsonify({'status': 'Departments not foudnd.'}), 404
 
 # Task 9 extended finished
 def get_dep_prop(tx, prop):
@@ -239,7 +242,10 @@ def get_dep_emp(tx, department_id):
 def get_departments_employees(department_id):
     with driver.session() as session:
         employees = session.execute_read(get_dep_emp, department_id)
-        return jsonify(employees)
+        if employees:
+            return jsonify(employees)
+        else:
+            jsonify({'status': 'Failure. Department not found.'}), 404
 
 
 
