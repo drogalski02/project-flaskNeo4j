@@ -20,15 +20,15 @@ driver = AsyncGraphDatabase.driver(uri, auth=(username, password), database="neo
 port = os.getenv("PORT")
 
 # Task 3 finished
-def get_emp(tx):
+async def get_emp(tx):
     query = "MATCH (m:Employee) RETURN m"
-    results = tx.run(query).data()
+    results = await tx.run(query).data()
     return [{"employee": result['m']} for result in results]
 
 @app.route('/employees', methods=['GET'])
-def get_employees():
-    with driver.session() as session:
-        results = session.execute_read(get_emp)
+async def get_employees():
+    async with driver.session() as session:
+        results = await session.execute_read(get_emp)
         return jsonify({'result': results})
 
 # Task 3 extended finished
