@@ -100,7 +100,7 @@ def put_emp(tx, employee_id, firstname, lastname, position, salary, department):
         return None
     else:
         query = "MATCH (e:Employee)-[r]->(d:Department) " \
-                "WHERE ID(e)=36 " \
+                "WHERE ID(e)=$employee_id " \
                 "SET e.firstname=$firstname, e.lastname=$lastname, e.position=$position, e.salary=$salary " \
                 "DELETE r " \
                 "CREATE (e)-[:WORKS_IN]->(w:Department {name: $department})"
@@ -246,7 +246,6 @@ def get_departments_employees(department_id):
             return jsonify(employees)
         else:
             jsonify({'status': 'Failure. Department not found.'}), 404
-
 
 
 if __name__ == '__main__':
