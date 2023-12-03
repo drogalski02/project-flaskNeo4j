@@ -1,13 +1,8 @@
-import asyncio
-
-import gunicorn.app.wsgiapp
-import uvicorn
 from flask import Flask, jsonify, request
-from neo4j import AsyncGraphDatabase
+from neo4j import GraphDatabase
 from dotenv import load_dotenv
 import os
-from asgiref.wsgi import WsgiToAsgi
-from uvicorn import Config
+import asyncio
 
 load_dotenv()
 
@@ -16,19 +11,18 @@ app = Flask(__name__)
 uri = os.getenv("URI")
 username = os.getenv("USERNAME")
 password = os.getenv("PASSWORD")
-driver = AsyncGraphDatabase.driver(uri, auth=(username, password), database="neo4j")
-port = os.getenv("PORT")
+driver = GraphDatabase.driver(uri, auth=(username, password), database="neo4j")
 
 # Task 3 finished
-async def get_emp(tx):
+def get_emp(tx):
     query = "MATCH (m:Employee) RETURN m"
-    results = await tx.run(query).data()
+    results = tx.run(query).data()
     return [{"employee": result['m']} for result in results]
 
 @app.route('/employees', methods=['GET'])
-async def get_employees():
-    async with driver.session() as session:
-        results = await session.execute_read(get_emp)
+def get_employees():
+    with driver.session() as session:
+        results = session.execute_read(get_emp)
         return jsonify({'result': results})
 
 # Task 3 extended finished
@@ -241,6 +235,7 @@ def get_departments_prop(prop):
 def get_dep_emp(tx, department_id):
     query = "MATCH (d:Department)<-[:WORKS_IN]-(e:Employee) WHERE ID(d) = $department_id RETURN e"
     results = tx.run(query, department_id=department_id).data()
+
     return [{"employee": result['e']} for result in results]
 
 
@@ -253,8 +248,6 @@ def get_departments_employees(department_id):
         else:
             jsonify({'status': 'Failure. Department not found.'}), 404
 
-app_asgi = WsgiToAsgi(app)
 
 if __name__ == '__main__':
-    config = Config(app, loop='asyncio', workers=2)
-    uvicorn.run(app_asgi, port=6000)
+    app.run()
