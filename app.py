@@ -244,7 +244,7 @@ def get_departments_employees(department_id):
         employees = session.execute_read(get_dep_emp, department_id)
         if employees:
             return jsonify(employees)
-        else
+        else:
             jsonify({'status': 'Failure. Department not found.'}), 404
 
 
