@@ -2,6 +2,10 @@
 - Projekt posiada bazę danych umieszczoną w chmurze Neo4j AuraDB
 - Aplikacja została osadzona w sieci pod linkiem: https://flask-neo4j-project.onrender.com/employees
 - Aplikacja wykorzystuje serwer WSGI gunicorn
+- Do poprawnego działania należy zdefiniować plik .env bądź zmienne środowisku w sewisie hostingowym:
+  - USERNAME="<nazwa_użytkownika_neo4j>"
+  - PASSWORD="<hasło_do_bazy>"
+  - URI="<uri_do_bazy>"
 - Polecenie do uruchomienia aplikacji: `gunicorn -w 4 -b 0.0.0.0:6000 app:app`
 ## Endpointy
 - [GET] /employees (wyświetla wszystkich pracowników)
