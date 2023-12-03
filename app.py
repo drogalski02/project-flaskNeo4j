@@ -12,6 +12,7 @@ uri = os.getenv("URI")
 username = os.getenv("USERNAME")
 password = os.getenv("PASSWORD")
 driver = GraphDatabase.driver(uri, auth=(username, password), database="neo4j")
+port = os.getenv("PORT")
 
 # Task 3 finished
 def get_emp(tx):
@@ -249,4 +250,4 @@ def get_departments_employees(department_id):
 
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000)
+    app.run(host='0.0.0.0', port=port)
