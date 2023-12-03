@@ -1,8 +1,13 @@
+import asyncio
+
+import gunicorn.app.wsgiapp
+import uvicorn
 from flask import Flask, jsonify, request
-from neo4j import GraphDatabase
+from neo4j import AsyncGraphDatabase
 from dotenv import load_dotenv
 import os
-import asyncio
+from asgiref.wsgi import WsgiToAsgi
+from uvicorn import Config
 
 load_dotenv()
 
@@ -11,7 +16,7 @@ app = Flask(__name__)
 uri = os.getenv("URI")
 username = os.getenv("USERNAME")
 password = os.getenv("PASSWORD")
-driver = GraphDatabase.driver(uri, auth=(username, password), database="neo4j")
+driver = AsyncGraphDatabase.driver(uri, auth=(username, password), database="neo4j")
 port = os.getenv("PORT")
 
 # Task 3 finished
@@ -248,6 +253,8 @@ def get_departments_employees(department_id):
         else:
             jsonify({'status': 'Failure. Department not found.'}), 404
 
+app_asgi = WsgiToAsgi(app)
 
 if __name__ == '__main__':
-    app.run()
+    config = Config(app, loop='asyncio', workers=2)
+    uvicorn.run(app_asgi, port=6000)
