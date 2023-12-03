@@ -12,7 +12,6 @@ uri = os.getenv("URI")
 username = os.getenv("USERNAME")
 password = os.getenv("PASSWORD")
 driver = GraphDatabase.driver(uri, auth=(username, password), database="neo4j")
-port = os.getenv("PORT")
 
 # Task 3 finished
 def get_emp(tx):
