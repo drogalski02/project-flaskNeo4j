@@ -244,9 +244,9 @@ def get_departments_employees(department_id):
         employees = session.execute_read(get_dep_emp, department_id)
         if employees:
             return jsonify(employees)
-        else:
+        else
             jsonify({'status': 'Failure. Department not found.'}), 404
 
 
 if __name__ == '__main__':
-    app.run()
+    app.run(host='0.0.0.0', port=5000)
