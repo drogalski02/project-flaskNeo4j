@@ -16,8 +16,12 @@ app = Flask(__name__)
 uri = os.getenv("URI")
 username = os.getenv("USERNAME")
 password = os.getenv("PASSWORD")
+<<<<<<< HEAD
 driver = AsyncGraphDatabase.driver(uri, auth=(username, password), database="neo4j")
 port = os.getenv("PORT")
+=======
+driver = GraphDatabase.driver(uri, auth=(username, password), database="neo4j")
+>>>>>>> af5aeeb6db5f70518e9762d9f908a016a3583a0e
 
 # Task 3 finished
 def get_emp(tx):
@@ -256,5 +260,9 @@ def get_departments_employees(department_id):
 app_asgi = WsgiToAsgi(app)
 
 if __name__ == '__main__':
+<<<<<<< HEAD
     config = Config(app, loop='asyncio', workers=2)
     uvicorn.run(app_asgi, port=6000)
+=======
+    app.run()
+>>>>>>> af5aeeb6db5f70518e9762d9f908a016a3583a0e
